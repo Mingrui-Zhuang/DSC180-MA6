@@ -57,6 +57,26 @@ def test_rolling_mean_excludes_today(feats):
         assert feats.set_index("dteday").cnt_roll_7[date] == pytest.approx(expected)
 
 
+def test_rolling_mean_3_excludes_today(feats):
+    """cnt_roll_3 must be the mean of the 3 calendar days *before* today."""
+    by_date = feats.set_index("dteday")[TARGET]
+    # Pick a date in training period (2011) with 3 prior calendar days available
+    # June 5, 2011 is day 156 - we'll use it to verify the rolling mean
+    date = pd.Timestamp("2011-06-05")
+
+    # Get the three strictly prior calendar days
+    window_dates = [date - pd.Timedelta(days=k) for k in range(1, 4)]
+
+    assert all(d in by_date.index for d in window_dates), \
+        f"Some dates missing from data: {window_dates}"
+
+    actual = feats.set_index("dteday").cnt_roll_3[date]
+    expected = sum(by_date[d] for d in window_dates) / 3
+    assert actual == pytest.approx(expected), \
+        f"cnt_roll_3[{date.date()}]={actual} != " \
+        f"mean of previous 3 days {window_dates}: ({sum(by_date[d] for d in window_dates)}/3={expected})"
+
+
 def test_no_missing_values(feats):
     assert feats[feature_columns(feats)].isna().sum().sum() == 0
 
