@@ -95,7 +95,8 @@ if unknown:
 
 **Automatic PostToolUse hook output:**
 ```
-PostToolUse:Edit hook blocking error from command: "${CLAUDE_PROJECT_DIR}/.claude/hooks/check_leakage.sh": [${CLAUDE_PROJECT_DIR}/.claude/hooks/check_leakage.sh]: Leakage tests failed after editing /Users/bobbyzhou/DSC180-MA6-claude/src/features.py:
+PostToolUse:Edit hook reported a problem
+[${CLAUDE_PROJECT_DIR}/.claude/hooks/check_leakage.sh]: Leakage tests failed after editing /Users/bobbyzhou/DSC180-MA6-claude/src/features.py:
 ......F..                                                                [100%]
 =================================== FAILURES ===================================
 _________________ test_weather_encoder_raises_on_unknown_label _________________
@@ -110,7 +111,7 @@ _________________ test_weather_encoder_raises_on_unknown_label _________________
 E       Failed: DID NOT RAISE ValueError
 
 tests/test_leakage.py:86: Failed
-=========================== short test summary ============================
+=========================== short test summary info ============================
 FAILED tests/test_leakage.py::test_weather_encoder_raises_on_unknown_label - ...
 1 failed, 8 passed in 0.39s
 ```
