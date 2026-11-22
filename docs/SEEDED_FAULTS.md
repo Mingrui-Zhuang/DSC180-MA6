@@ -122,3 +122,25 @@ make test: 16 passed in 1.11s
 ```
 
 **Commit hash (broken):** `81f49af`
+
+
+## Fault 4: Write to `data/raw/` bypasses PostToolUse hook
+
+**Change:** Copied a marker file into the restricted directory using Bash:
+```bash
+cp "/Users/bobbyzhou/DSC180-MA6-claude/fault4-fixture.8973Yh/fault4-marker.txt" "/Users/bobbyzhou/DSC180-MA6-claude/fault4-fixture.8973Yh/data/raw/fault4-marker.txt"
+```
+
+**Disposable destination:** `fault4-fixture.8973Yh/data/raw/` (a local fixture, not the real `data/raw/`)
+
+**Actual terminal output:**
+```
+EXIT_CODE: 0
+Destination contents:
+fault 4 demo
+```
+
+**No automatic leakage-hook message appeared.** The copy ran through Bash as a direct shell command. The PostToolUse hook only matches `Edit|Write` tool calls in the harness; it does not intercept arbitrary Bash commands like `cp`. This run used a fixture and did not test the real `data/raw/` permissions or bypass the deny rule that blocks writes to that directory.
+
+**Detection check:** Have `make data` compare the filenames in `data/raw/` with an expected file list and report unexpected additions. Hashing only the expected files would miss an extra marker file.
+
