@@ -114,3 +114,10 @@ tests/test_leakage.py:86: Failed
 FAILED tests/test_leakage.py::test_weather_encoder_raises_on_unknown_label - ...
 1 failed, 8 passed in 0.39s
 ```
+
+**Repair:** Restored the two deleted lines checking for and raising on unknown labels (1 turn).
+```
+make test: 16 passed in 1.11s
+```
+
+**Commit hash (broken):** `81f49af`
