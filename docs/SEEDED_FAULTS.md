@@ -83,3 +83,34 @@ make test: 15 passed in 1.13s
 ```
 
 **Commit hash (broken):** `b4b63fc`
+
+
+## Fault 3: `encode_weather` silently drops unknown labels
+
+**Change:** Removed the two lines that check for and raise on unknown weather labels:
+```python
+if unknown:
+    raise ValueError(f"unmapped weather labels: {sorted(unknown)}")
+```
+
+**Automatic PostToolUse hook output:**
+```
+PostToolUse:Edit hook blocking error from command: "${CLAUDE_PROJECT_DIR}/.claude/hooks/check_leakage.sh": [${CLAUDE_PROJECT_DIR}/.claude/hooks/check_leakage.sh]: Leakage tests failed after editing /Users/bobbyzhou/DSC180-MA6-claude/src/features.py:
+......F..                                                                [100%]
+=================================== FAILURES ===================================
+_________________ test_weather_encoder_raises_on_unknown_label _________________
+
+    def test_weather_encoder_raises_on_unknown_label():
+        """Fault 3 guard: encode_weather must raise ValueError on unmapped labels."""
+        from src.features import encode_weather
+    
+        # Fault 3: Unknown label "SNOW" (not in WEATHER_ORDER) should raise ValueError
+        series_with_snow = pd.Series(["GOOD", "SNOW"])
+>       with pytest.raises(ValueError, match=r"\bSNOW\b"):
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_leakage.py:86: Failed
+=========================== short test summary ============================
+FAILED tests/test_leakage.py::test_weather_encoder_raises_on_unknown_label - ...
+1 failed, 8 passed in 0.39s
+```
