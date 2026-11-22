@@ -36,4 +36,9 @@ FAILED tests/test_leakage.py::test_no_forbidden_features - AssertionError: fo...
 1 failed, 7 passed in 0.46s
 ```
 
-**Repair:** Removed `"casual"` from the return statement.
+**Repair:** Removed `"casual"` from the return statement (1 turn).
+```
+make test: 15 passed in 1.40s
+```
+
+**Commit hash (broken):** `7208021`
