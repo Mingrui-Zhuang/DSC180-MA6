@@ -42,3 +42,37 @@ make test: 15 passed in 1.40s
 ```
 
 **Commit hash (broken):** `7208021`
+
+
+## Fault 2: `cnt_roll_7` missing `.shift(1)`
+
+**Change:** Removed `.shift(1)` from the calculation of `cnt_roll_7` in `src/features.py`.
+
+```python
+out["cnt_roll_7"] = out[TARGET].rolling(LAG_WARMUP).mean()
+```
+
+**Automatic PostToolUse hook output:**
+```
+PostToolUse:Edit hook blocking error from command: "${CLAUDE_PROJECT_DIR}/.claude/hooks/check_leakage.sh": [${CLAUDE_PROJECT_DIR}/.claude/hooks/check_leakage.sh]: Leakage tests failed after editing /Users/bobbyzhou/DSC180-MA6-claude/src/features.py:
+[714 rows x 29 columns]
+
+    def test_rolling_mean_excludes_today(feats):
+        """cnt_roll_7 must be the mean of the 7 calendar days *before* today."""
+        by_date = feats.set_index("dteday")[TARGET]
+        date = feats.dteday.iloc[200]
+        window = [date - pd.Timedelta(days=k) for k in range(1, 8)]
+        if all(d in by_date.index for d in window):
+            expected = sum(by_date[d] for d in window) / 7
+>           assert feats.set_index("dteday").cnt_roll_7[date] == pytest.approx(expected)
+E           assert np.float64(4389.0) == 4414.857142857143 ± 0.00441486
+E             
+E             comparison failed
+E             Obtained: 4389.0
+E             Expected: 4414.857142857143 ± 0.00441486
+
+tests/test_leakage.py:57: AssertionError
+=========================== short test summary ============================
+FAILED tests/test_leakage.py::test_rolling_mean_excludes_today - assert np.fl...
+1 failed, 7 passed in 0.42s
+```
