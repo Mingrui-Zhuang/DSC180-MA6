@@ -124,9 +124,9 @@ make test: 16 passed in 1.11s
 **Commit hash (broken):** `81f49af`
 
 
-## Fault 4: Write to `data/raw/` bypasses PostToolUse hook
+## Fault 4: Bash copy into a disposable data/raw/ fixture
 
-**Change:** Copied a marker file into the restricted directory using Bash:
+**Change:** Copied a marker file into the disposable fixture using Bash:
 ```bash
 cp "/Users/bobbyzhou/DSC180-MA6-claude/fault4-fixture.8973Yh/fault4-marker.txt" "/Users/bobbyzhou/DSC180-MA6-claude/fault4-fixture.8973Yh/data/raw/fault4-marker.txt"
 ```
