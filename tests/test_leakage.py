@@ -77,6 +77,22 @@ def test_rolling_mean_3_excludes_today(feats):
         f"mean of previous 3 days {window_dates}: ({sum(by_date[d] for d in window_dates)}/3={expected})"
 
 
+def test_weather_encoder_raises_on_unknown_label():
+    """Fault 3 guard: encode_weather must raise ValueError on unmapped labels."""
+    from src.features import encode_weather
+
+    # Test that known labels pass (GOOD and SNOW should both work initially)
+    series_with_good = pd.Series(["GOOD", "GOOD", None])
+    result = encode_weather(series_with_good)
+    assert result[0] == 0
+    assert result[1] == 0
+
+    # Fault 3: Unknown label "SNOW" (not in WEATHER_ORDER) should raise ValueError
+    series_with_snow = pd.Series(["GOOD", "SNOW", None])
+    with pytest.raises(ValueError, match="unmapped weather labels"):
+        encode_weather(series_with_snow)
+
+
 def test_no_missing_values(feats):
     assert feats[feature_columns(feats)].isna().sum().sum() == 0
 
