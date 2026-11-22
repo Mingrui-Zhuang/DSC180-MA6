@@ -76,3 +76,10 @@ tests/test_leakage.py:57: AssertionError
 FAILED tests/test_leakage.py::test_rolling_mean_excludes_today - assert np.fl...
 1 failed, 7 passed in 0.42s
 ```
+
+**Repair:** Added `.shift(1)` back to `cnt_roll_7` (1 turn).
+```
+make test: 15 passed in 1.13s
+```
+
+**Commit hash (broken):** `b4b63fc`
