@@ -84,3 +84,15 @@ def test_no_missing_values(feats):
 def test_dates_are_sorted_and_unique(feats):
     assert feats.dteday.is_monotonic_increasing
     assert feats.dteday.is_unique
+
+
+def test_exercise4_excludes_cnt_roll_3():
+    """Exercise 4 must exclude cnt_roll_3 from feature set."""
+    from src.config import VALID_END
+    from src.train import exercise4_fit_and_score, temporal_split
+
+    # Run exercise4 fit and check that cnt_roll_3 is not in features
+    res = exercise4_fit_and_score()
+    assert "cnt_roll_3" not in res["features"], \
+        "Exercise 4 must exclude cnt_roll_3 based on Exercise 1 validation"
+
