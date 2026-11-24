@@ -71,22 +71,23 @@ def temporal_split(df: pd.DataFrame):
     return train, valid, test
 
 
-def fit_and_score(include_roll_3: bool = True) -> dict:
+def fit_and_score() -> dict:
     """Train models and write metrics to reports/metrics.json.
 
-    Args:
-        include_roll_3: If False, exclude cnt_roll_3 feature (for Exercise 4 final test).
+    Always produces all four original model results with cnt_roll_3 at the top
+    level, plus a "before-feature" block showing results without cnt_roll_3.
     """
     df = pd.read_parquet(PROCESSED)
     cols = feature_columns(df)
 
-    # Determine which columns to use (with or without cnt_roll_3)
-    if not include_roll_3 and "cnt_roll_3" in cols:
-        cols_no_roll = [c for c in cols if c != "cnt_roll_3"]
+    # Check if cnt_roll_3 is in features
+    has_roll_3 = "cnt_roll_3" in cols
+    if has_roll_3:
         cols_with_roll = cols
+        cols_no_roll = [c for c in cols if c != "cnt_roll_3"]
     else:
         cols_with_roll = None
-        cols_no_roll = cols
+        cols_no_roll = None
 
     train, valid, test = temporal_split(df)
 
@@ -99,7 +100,7 @@ def fit_and_score(include_roll_3: bool = True) -> dict:
     }
 
     # Before-feature results: models without cnt_roll_3
-    if not include_roll_3 and cols_no_roll is not None:
+    if cols_no_roll is not None:
         results["before-feature"] = {}
         for name, model in MODELS.items():
             model.fit(train[cols_no_roll], train[TARGET])
@@ -115,8 +116,14 @@ def fit_and_score(include_roll_3: bool = True) -> dict:
             }
 
     for name, model in MODELS.items():
-        model.fit(train[cols_with_roll] if cols_with_roll is not None else train[cols_no_roll], train[TARGET])
-        result_cols = cols_with_roll if cols_with_roll is not None else cols_no_roll
+        # Use appropriate columns based on whether we include cnt_roll_3
+        if cols_with_roll is not None:
+            train_X = train[cols_with_roll]
+            result_cols = cols_with_roll
+        else:
+            train_X = train[cols_no_roll]
+            result_cols = cols_no_roll
+        model.fit(train_X, train[TARGET])
         results[name] = {
             split: {
                 "r2": round(float(r2_score(part[TARGET], model.predict(part[result_cols]))), 4),
@@ -217,39 +224,33 @@ def exercise4_fit_and_score() -> dict:
     return results
 
 
-def run_final_test(include_roll_3: bool = False) -> dict:
+def run_final_test() -> dict:
     """Run Exercise 4 final test evaluation on held-out test set.
 
-    Args:
-        include_roll_3: If True, includes cnt_roll_3 in features (after applying transformations).
-
-    Returns:
-        Results dictionary with before-feature and hgb_changes metrics for validation and test.
+    Returns results without writing to metrics.json (for --exercise4 --final-test).
+    Includes both before-feature and hgb_changes validation/test scores.
+    Reports 14 features (the actual feature set without cnt_roll_3).
     """
     df = pd.read_parquet(PROCESSED)
-    cols = feature_columns(df)
 
     # Remove cnt_roll_3 from features
-    if not include_roll_3 and "cnt_roll_3" in cols:
+    cols = feature_columns(df)
+    if "cnt_roll_3" in cols:
         cols_no_roll = [c for c in cols if c != "cnt_roll_3"]
     else:
-        raise ValueError("run_final_test requires exclude roll=3")
+        raise ValueError("run_final_test requires excluding cnt_roll_3")
 
     train, valid, test = temporal_split(df)
 
-    # Use the same hyperparameters as exercise4
-    HGB_RANDOM_STATE = 0
-    HGB_MAX_ITER = 300
-
     results = {
-        "n_features": len(cols),
+        "n_features": len(cols),  # Will be 14 without cnt_roll_3
         "features": cols,
         "n_train": len(train),
         "n_valid": len(valid),
         "n_test": len(test),
     }
 
-    # Before-feature results: models without cnt_roll_3
+    # Before-feature results: all four original models without cnt_roll_3
     results["before-feature"] = {}
     for name, model in MODELS.items():
         model.fit(train[cols_no_roll], train[TARGET])
@@ -264,8 +265,9 @@ def run_final_test(include_roll_3: bool = False) -> dict:
             }
         }
 
-    # After-feature results: hgb_changes model evaluated on test set
-    # Fit on training data, predict on validation and test
+    # hgb_changes results: evaluate transformed model on validation and test
+    HGB_RANDOM_STATE = 0
+    HGB_MAX_ITER = 300
     hgb_change = HistGradientBoostingRegressor(random_state=HGB_RANDOM_STATE, max_iter=HGB_MAX_ITER)
     y_changes_train = train[TARGET] - train["cnt_lag_1"]
     hgb_change.fit(train[cols_no_roll], y_changes_train.values)
@@ -307,9 +309,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.exercise4 and args.final_test:
-        res = run_final_test(include_roll_3=False)
-        METRICS.parent.mkdir(parents=True, exist_ok=True)
-        METRICS.write_text(json.dumps(res, indent=2))
+        res = run_final_test()  # Prints results without writing to metrics.json
         print("Exercise 4 final test evaluation complete.")
         print(json.dumps({k: v for k, v in res.items() if k != "features"}, indent=2))
     elif args.exercise4:
