@@ -243,8 +243,8 @@ def run_final_test() -> dict:
     train, valid, test = temporal_split(df)
 
     results = {
-        "n_features": len(cols),  # Will be 14 without cnt_roll_3
-        "features": cols,
+        "n_features": len(cols_no_roll),  # Will be 14 without cnt_roll_3
+        "features": cols_no_roll,
         "n_train": len(train),
         "n_valid": len(valid),
         "n_test": len(test),

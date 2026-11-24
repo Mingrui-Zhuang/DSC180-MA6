@@ -14,3 +14,11 @@ Agents append here via the `/new-feature` skill; you append here by hand.
   to 0.6079 and MAE decreased from 1296.6 to 834.3. We consider
   this transformation defensible for one-day-ahead forecasting.
   Ridge remains our preferred model based on validation.
+
+- 2026-11-24 — Added `cnt_roll_3`, the mean ridership over the previous three days. Shifting by one day ensures that all observations are available at forecast time. Ridge validation R² decreased from 0.6475 to 0.6439, and HGB validation R² decreased from 0.2185 to 0.1983.
+
+- 2026-11-24 — Retained `cnt_roll_3` in the submitted pipeline for reproducible before-and-after comparison, despite its negative validation results. Excluded it from Exercise 4 to maintain a consistent 14-feature comparison.
+
+- 2026-11-24 — Prefer Ridge when minimizing squared prediction errors based on validation performance, while acknowledging that persistence achieves lower test MAE.
+
+- 2026-11-24 — Updated `CLAUDE.md` to enforce strictly historical inputs for `cnt_roll_3` and document the `/ablation` skill, which restricts feature comparisons to validation data.
