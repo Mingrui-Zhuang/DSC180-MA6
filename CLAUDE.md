@@ -40,5 +40,5 @@ rides) from calendar, weather, and lagged-demand features.
 - 2012-10-29 (Hurricane Sandy, 22 rides) is in the test set. Expect it in
   any residual plot.
 
-  - `cnt_roll_3` must use strictly prior calendar days.
+- `cnt_roll_3` must use strictly prior calendar days.
 - Use `/ablation <feature>` to compare feature contributions on validation.
